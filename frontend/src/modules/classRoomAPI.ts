@@ -35,3 +35,12 @@ export const updateClassRoom = async ({
     },
   }).then((res) => res.json() as Promise<ClassRoom>);
 };
+
+export const deleteClassRoom = async (id: ClassRoom["id"]) => {
+  return fetch(`/api/class_rooms/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};

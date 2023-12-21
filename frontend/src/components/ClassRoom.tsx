@@ -7,6 +7,7 @@ import {
 import { twMerge } from "tailwind-merge";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateClassRoomBody, updateClassRoom } from "../modules/classRoomAPI";
+import { Button } from "./atoms/Button";
 
 // Sources: Spring Pastel from https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
 const chartColor = [
@@ -23,9 +24,13 @@ const chartColor = [
 
 interface ClassRoomProps {
   classRoom: IClassRoom;
+  onConfirmDelete: (id: number) => void;
 }
 
-export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
+export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
+  classRoom,
+  onConfirmDelete,
+}) => {
   const [calculateResult, setCalculateResult] = useState<YieldValue | null>(
     null
   );
@@ -112,6 +117,10 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
     });
   };
 
+  const onClickDelete = () => {
+    onConfirmDelete(classRoom.id);
+  };
+
   return (
     <div
       className={twMerge(
@@ -121,8 +130,31 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
       )}
       ref={elementRef}
     >
-      <div className="border-b-2 border-gray-400 w-full">
+      <div className="border-b-2 border-gray-400 w-full relative">
         <div className="text-center font-bold pb-2">{classRoom.name}</div>
+        <div className="absolute top-0 right-0">
+          <button
+            type="button"
+            className="inline-flex justify-center rounded-md px-1 py-1 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            onClick={onClickDelete}
+          >
+            <span className="sr-only">Close</span>
+            <svg
+              className="h-6 w-6 text-gray-400 hover:text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       <div className="m-2 p-2 grid grid-cols-2 gap-2">
         <div>Tube Units</div>
@@ -141,13 +173,13 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
           <>
             <div>Simulate Tube</div>
             <div className="text-right">
-              <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              <Button
+                variant="primary"
                 type="button"
                 onClick={prepareSimulation}
               >
                 Run
-              </button>
+              </Button>
             </div>
           </>
         )}
