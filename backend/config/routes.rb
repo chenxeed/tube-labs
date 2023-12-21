@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
-  
-  resources :class_rooms
+  scope '/api' do
+    resources :class_rooms
+  end
 end
