@@ -8,7 +8,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientContext.Provider value={queryClient}>
-      <div className="mx-auto dark:bg-gray-950">
+      <div className="mx-auto dark:bg-gray-950 min-h-screen">
         <header className="p-4 border-b-2 dark:bg-primary border-gray-400 shadow">
           <h1 className="mt-2 text-4xl font-colaba text-primary dark:text-white">
             [ INSIDE ] University
