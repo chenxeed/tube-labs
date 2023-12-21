@@ -15,7 +15,7 @@ function App() {
           </h1>
         </header>
         <div className="container mx-auto">
-          <div className="mt-4 bg-slate-50 dark:bg-slate-500 dark:text-slate-50">
+          <div className="mt-4 py-3 bg-slate-50 dark:bg-slate-500 dark:text-slate-50">
             <h2 className="text-center text-2xl font-bold">
               Register New Class
             </h2>
@@ -24,7 +24,7 @@ function App() {
             </div>
           </div>
           <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-600 dark:text-slate-50">
-            <h2 className="text-center text-2xl font-bold">Classes</h2>
+            <h2 className="text-center text-2xl font-bold">Classrooms</h2>
             <ClassRoomList />
           </div>
         </div>
