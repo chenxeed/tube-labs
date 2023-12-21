@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  tubeUnits: 1
+  fluorescentTubes: 1
+  brokenTubes: 1
+  cost: 1
+  isSimulated: false
+
+two:
+  name: MyString
+  tubeUnits: 1
+  fluorescentTubes: 1
+  brokenTubes: 1
+  cost: 1
+  isSimulated: false
