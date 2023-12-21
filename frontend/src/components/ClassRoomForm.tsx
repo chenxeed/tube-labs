@@ -69,7 +69,7 @@ export const ClassRoomForm: FunctionComponent<{
   };
 
   return (
-    <div className="w-full max-w-xs">
+    <div className="w-full max-w-xs bg-white dark:bg-slate-800">
       <Formik
         initialValues={initialValue}
         validationSchema={validationSchema}

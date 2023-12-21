@@ -115,7 +115,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
   return (
     <div
       className={twMerge(
-        "w-full p-2 rounded min-h-56 flex flex-col items-center justify-center border border-1 shadow transition-all bg-white dark:bg-slate-950",
+        "w-full p-2 rounded min-h-56 flex flex-col items-center justify-start border border-1 shadow transition-all bg-white dark:bg-slate-950",
         toPrint && "col-span-5",
         loadingSimulation && "w-0 opacity-0"
       )}
