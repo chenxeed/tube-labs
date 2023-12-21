@@ -1,4 +1,4 @@
-import { calculateClassTubes } from "./classTubeCalculator";
+import { calculateClassTubes } from "../classTubeCalculator";
 
 beforeEach(() => {
   let counter = 0;

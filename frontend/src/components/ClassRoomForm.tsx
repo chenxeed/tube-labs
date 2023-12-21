@@ -1,6 +1,5 @@
 import { FunctionComponent, useMemo } from "react";
 import { Formik } from "formik";
-import { ClassRoom } from "../types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Yup from "yup";
 import {
@@ -9,20 +8,27 @@ import {
   createClassRoom,
 } from "../modules/classRoomAPI";
 import { Button } from "./atoms/Button";
-const limitTube = 10;
+
+const TUBE_MAX = 10;
+const TUBE_MIN = 0;
+const UNIT_MIN = 1;
 
 export const ClassRoomForm: FunctionComponent<{
   classRoom?: CreateClassRoom;
 }> = (props) => {
+  // Custom Hooks
+
   const queryClient = useQueryClient();
-  const { isPending, mutate } = useMutation<
-    ClassRoom,
+  const { isPending, mutate, error } = useMutation<
+    Response,
     Error,
     CreateClassRoomBody
   >({
     mutationFn: createClassRoom,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
+    onSuccess: (res) => {
+      if (res.status < 400) {
+        queryClient.invalidateQueries({ queryKey: ["classrooms"] });
+      }
     },
   });
 
@@ -32,12 +38,12 @@ export const ClassRoomForm: FunctionComponent<{
       .max(50, "Too Long")
       .required("Required"),
     tubeUnits: Yup.number()
-      .min(1, "Too less")
-      .max(limitTube, "Too much")
+      .min(UNIT_MIN, "Too less")
+      .max(TUBE_MAX, "Too much")
       .required("Required"),
     fluorescentTubes: Yup.number()
-      .min(2, "Too less")
-      .max(limitTube, "Too much")
+      .min(TUBE_MIN, "Too less")
+      .max(TUBE_MAX, "Too much")
       .required("Required"),
   });
 
@@ -62,6 +68,8 @@ export const ClassRoomForm: FunctionComponent<{
       };
     }
   }, [props.classRoom]);
+
+  // Event Listener
 
   const onSubmit = async (values: CreateClassRoom) => {
     mutate({
@@ -98,9 +106,7 @@ export const ClassRoomForm: FunctionComponent<{
                 value={values.name}
                 onChange={handleChange}
               />
-              {errors.name && (
-                <p className="text-red-500 text-xs italic">{errors.name}</p>
-              )}
+              <p className="text-red-500 text-xs italic">{errors.name}</p>
             </div>
             <div className="mb-6">
               <div className="flex gap-2">
@@ -115,8 +121,8 @@ export const ClassRoomForm: FunctionComponent<{
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-slate-50 dark:bg-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                     id="tubeUnits"
                     type="number"
-                    min="1"
-                    max={limitTube}
+                    min={UNIT_MIN}
+                    max={TUBE_MAX}
                     value={values.tubeUnits}
                     onChange={handleChange}
                   />
@@ -135,21 +141,24 @@ export const ClassRoomForm: FunctionComponent<{
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-slate-50 dark:bg-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                     name="fluorescentTubes"
                     type="number"
-                    min="2"
-                    max={limitTube}
+                    min={TUBE_MIN}
+                    max={TUBE_MAX}
                     value={values.fluorescentTubes}
                     onChange={handleChange}
                   />
-                  {errors.fluorescentTubes && (
-                    <p className="text-red-500 text-xs italic">
-                      {errors.fluorescentTubes}
-                    </p>
-                  )}
+                  <p className="text-red-500 text-xs italic">
+                    {errors.fluorescentTubes}
+                  </p>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <Button type="submit">{isPending ? "Saving..." : "Save"}</Button>
+              {error && (
+                <p className="text-red-500 text-xs italic">
+                  Failed to save from the server: {`${error}`}
+                </p>
+              )}
             </div>
           </form>
         )}

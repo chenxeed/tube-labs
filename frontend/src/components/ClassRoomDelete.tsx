@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useEffect, useRef, useState } from "react";
 import { ClassRoom } from "../types";
 import { Modal } from "./atoms/Modal";
 import { Button } from "./atoms/Button";
@@ -9,10 +9,17 @@ interface ClassRoomDeleteProps {
   classRoom: ClassRoom;
   onClose: () => void;
 }
+
 export const ClassRoomDelete: FunctionComponent<ClassRoomDeleteProps> = ({
   classRoom,
   onClose,
 }) => {
+  // Variables
+  const [openDelete, setOpenDelete] = useState(false);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+
+  // Custom Hooks
+
   const queryClient = useQueryClient();
   const { isPending, mutate } = useMutation<Response, Error, number>({
     mutationFn: deleteClassRoom,
@@ -21,7 +28,8 @@ export const ClassRoomDelete: FunctionComponent<ClassRoomDeleteProps> = ({
       onCloseModal();
     },
   });
-  const [openDelete, setOpenDelete] = useState(false);
+
+  // Functionality
 
   const onConfirmDelete = () => {
     mutate(classRoom.id);
@@ -35,32 +43,36 @@ export const ClassRoomDelete: FunctionComponent<ClassRoomDeleteProps> = ({
     }, 500);
   };
 
+  // Lifecycle
+
   useEffect(() => {
     setOpenDelete(true);
   }, []);
 
   return (
-    <>
-      <Modal open={openDelete} onClose={onCloseModal}>
-        <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
-          <p className="mb-4 text-gray-500 dark:text-gray-300">
-            Are you sure you want to delete {classRoom.name}?
-          </p>
-          <div className="flex justify-center items-center space-x-4">
-            {isPending && <div>Deleting, please wait...</div>}
-            {!isPending && (
-              <>
-                <Button variant="secondary" onClick={onCloseModal}>
-                  No
-                </Button>
-                <Button variant="danger" onClick={() => onConfirmDelete()}>
-                  I'm sure
-                </Button>
-              </>
-            )}
-          </div>
+    <Modal open={openDelete} onClose={onCloseModal}>
+      <div className="relative p-4 text-center bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+        <p className="mb-4 text-gray-500 dark:text-gray-300">
+          Are you sure you want to delete {classRoom.name}?
+        </p>
+        <div className="flex justify-center items-center space-x-4">
+          {isPending && <div>Deleting, please wait...</div>}
+          {!isPending && (
+            <>
+              <Button variant="secondary" onClick={onCloseModal}>
+                No
+              </Button>
+              <Button
+                variant="danger"
+                onClick={onConfirmDelete}
+                ref={confirmButton}
+              >
+                I'm sure
+              </Button>
+            </>
+          )}
         </div>
-      </Modal>
-    </>
+      </div>
+    </Modal>
   );
 };

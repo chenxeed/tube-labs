@@ -5,6 +5,10 @@ export type CreateClassRoomBody = {
   class_room: CreateClassRoom;
 };
 
+export const getClassRooms = () => {
+  return fetch("/api/class_rooms").then((res) => res.json());
+};
+
 export const createClassRoom = async (classRoom: CreateClassRoomBody) => {
   return fetch("/api/class_rooms", {
     method: "POST",
@@ -12,7 +16,7 @@ export const createClassRoom = async (classRoom: CreateClassRoomBody) => {
     headers: {
       "Content-Type": "application/json",
     },
-  }).then((res) => res.json() as Promise<ClassRoom>);
+  });
 };
 
 export type UpdateClassRoom = Partial<ClassRoom>;
@@ -33,7 +37,7 @@ export const updateClassRoom = async ({
     headers: {
       "Content-Type": "application/json",
     },
-  }).then((res) => res.json() as Promise<ClassRoom>);
+  });
 };
 
 export const deleteClassRoom = async (id: ClassRoom["id"]) => {

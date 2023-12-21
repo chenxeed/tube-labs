@@ -9,6 +9,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateClassRoomBody, updateClassRoom } from "../modules/classRoomAPI";
 import { Button } from "./atoms/Button";
 
+interface ClassRoomProps {
+  classRoom: IClassRoom;
+  onConfirmDelete: (id: number) => void;
+}
+
 // Sources: Spring Pastel from https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
 const chartColor = [
   "#fd7f6f",
@@ -22,20 +27,42 @@ const chartColor = [
   "#8bd3c7",
 ];
 
-interface ClassRoomProps {
-  classRoom: IClassRoom;
-  onConfirmDelete: (id: number) => void;
-}
-
 export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
   classRoom,
   onConfirmDelete,
 }) => {
+  // Variables
+
   const [calculateResult, setCalculateResult] = useState<YieldValue | null>(
     null
   );
   const [loadingSimulation, setLoadingSimulation] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
+
+  // Custom Hooks
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation<
+    Response,
+    Error,
+    { id: number; body: UpdateClassRoomBody }
+  >({
+    mutationFn: updateClassRoom,
+    onSuccess: (res) => {
+      if (res.status >= 400) {
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
+      setLoadingSimulation(true);
+      setTimeout(() => {
+        setLoadingSimulation(false);
+        setCalculateResult(null);
+      }, 500);
+    },
+  });
+
+  // Computed
+
   const toPrint = useMemo(() => {
     if (!calculateResult) {
       return null;
@@ -50,30 +77,16 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
     });
   }, [calculateResult, classRoom.fluorescentTubes]);
 
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation<
-    IClassRoom,
-    Error,
-    { id: number; body: UpdateClassRoomBody }
-  >({
-    mutationFn: updateClassRoom,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
-      setLoadingSimulation(true);
-      setTimeout(() => {
-        setLoadingSimulation(false);
-        setCalculateResult(null);
-      }, 500);
-    },
-  });
+  // Functionality
 
+  /**
+   * Animate the simulation progress by showing the loading phase and then scroll into the simulation for easier navigation
+   */
   const prepareSimulation = () => {
     setLoadingSimulation(true);
     setTimeout(() => {
       setLoadingSimulation(false);
       getSimulation();
-      // A small delay to let the DOM render and make the screen scrollable,
-      // so we can scroll to the simulation result
       setTimeout(() => {
         elementRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -83,6 +96,10 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
     }, 500);
   };
 
+  /**
+   * Retrieve the simulation result progressively thru the generator function,
+   * and once the simulation is done, save the result to the database
+   */
   const getSimulation = () => {
     const iteration = calculateClassTubesGenerator(
       classRoom.tubeUnits,
@@ -98,25 +115,24 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
           window.requestAnimationFrame(iterateResult);
         }, 100);
       } else {
-        saveSimulationResult(nextResult);
+        mutate({
+          id: classRoom.id,
+          body: {
+            class_room: {
+              isSimulated: true,
+              brokenTubes: nextResult.metadata.brokenTubes,
+              cost: nextResult.metadata.cost,
+            },
+          },
+        });
       }
     }
     window.requestAnimationFrame(iterateResult);
   };
 
-  const saveSimulationResult = (result: YieldValue) => {
-    mutate({
-      id: classRoom.id,
-      body: {
-        class_room: {
-          isSimulated: true,
-          brokenTubes: result.metadata.brokenTubes,
-          cost: result.metadata.cost,
-        },
-      },
-    });
-  };
-
+  /**
+   * Pass the class room id to the parent component to confirm the deletion
+   */
   const onClickDelete = () => {
     onConfirmDelete(classRoom.id);
   };
@@ -124,7 +140,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
   return (
     <div
       className={twMerge(
-        "w-full p-2 rounded min-h-56 flex flex-col items-center justify-start border border-1 shadow transition-all bg-white dark:bg-slate-950",
+        "w-full p-2 rounded min-h-56 flex flex-col items-center justify-start border border-1 shadow transition-all duration-500 bg-white dark:bg-slate-950",
         toPrint && "col-span-5",
         loadingSimulation && "w-0 opacity-0"
       )}
@@ -156,16 +172,17 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
           </button>
         </div>
       </div>
+
       <div className="m-2 p-2 grid grid-cols-2 gap-2">
-        <div>Tube Units</div>
+        <div className="font-bold">Tube Units</div>
         <div className="text-right">{classRoom.tubeUnits}</div>
-        <div>Tubes per Unit</div>
+        <div className="font-bold">Tubes per Unit</div>
         <div className="text-right">{classRoom.fluorescentTubes}</div>
         {classRoom.isSimulated && (
           <>
-            <div>Broken Tubes</div>
+            <div className="font-bold">Broken Tubes</div>
             <div className="text-right">{classRoom.brokenTubes}</div>
-            <div>Cost</div>
+            <div className="font-bold">Cost</div>
             <div className="text-right">{classRoom.cost}</div>
           </>
         )}
@@ -184,6 +201,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
           </>
         )}
       </div>
+
       {calculateResult && toPrint && (
         <>
           <div className="w-full">
@@ -208,15 +226,15 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
             </div>
           </div>
           <div className="m-2 p-2 grid grid-cols-2 gap-2">
-            <div>Hours remaining</div>
+            <div className="font-bold">Hours remaining</div>
             <div className="text-right">
               {calculateResult.metadata.hoursRemaining}
             </div>
-            <div>Broken Tubes</div>
+            <div className="font-bold">Broken Tubes</div>
             <div className="text-right">
               {calculateResult.metadata.brokenTubes}
             </div>
-            <div>Cost</div>
+            <div className="font-bold">Cost</div>
             <div className="text-right">${calculateResult.metadata.cost}</div>
           </div>
         </>

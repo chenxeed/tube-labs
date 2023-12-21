@@ -1,4 +1,9 @@
-import { FunctionComponent, PropsWithChildren, useMemo } from "react";
+import {
+  FunctionComponent,
+  PropsWithChildren,
+  useEffect,
+  useMemo,
+} from "react";
 import { createPortal } from "react-dom";
 import { twMerge } from "tailwind-merge";
 
@@ -6,6 +11,7 @@ interface ModalProps {
   open: boolean;
   size?: "md" | "lg";
   onClose?: () => void;
+  onOpened?: () => void;
 }
 
 export const Modal: FunctionComponent<ModalProps & PropsWithChildren> = ({
@@ -13,6 +19,7 @@ export const Modal: FunctionComponent<ModalProps & PropsWithChildren> = ({
   open,
   size = "md",
   onClose,
+  onOpened,
 }) => {
   // Style properties
 
