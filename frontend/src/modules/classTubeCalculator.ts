@@ -5,6 +5,7 @@
  * @param tubePerUnit the number of tubes in a unit
  * @returns
  */
+
 export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
   if (unit <= 0) {
     throw new Error("calculateClassTubes: Invalid input unit");
@@ -33,6 +34,7 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
     for (let tubeIndex = 0; tubeIndex < tubePerUnit; tubeIndex++) {
       expiredTubes.push(rand());
     }
+    expiredTubes.sort((a, b) => a - b);
 
     for (let tubeIndex = 0; tubeIndex < tubePerUnit; tubeIndex++) {
       tubes.push({
@@ -48,10 +50,10 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
   let brokenTubes = 0;
 
   // Looping through each unit and tube to count the broken tubes and the cost
-  // Since we need to replace all tubes in a unit if there are more than {replaceLimit} broken tubes, we just count the {replaceLimit} lowest expired tube in a unit
+  // Since we need to replace all tubes in a unit if there are more than {replaceLimit} broken tubes,
+  // we can just count the {replaceLimit} lowest expired tube in a unit and ignore the rest
   for (let unitIndex = 0; unitIndex < unit; unitIndex++) {
     let hoursRemaining = hours;
-
     // Let's run the simulation of the tubes of each unit
     while (hoursRemaining > 0) {
       const tubes = createTubes();
@@ -69,6 +71,8 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
         if (tubeIndex === replaceLimit - 1) {
           cost += replaceCost * tubePerUnit;
           break;
+        } else {
+          tubes[tubeIndex + 1].expired -= tube.expired;
         }
 
         if (hoursRemaining <= 0) {
