@@ -1,4 +1,4 @@
-import { FunctionComponent, useMemo } from "react";
+import { FunctionComponent, useMemo, useState } from "react";
 import { Formik } from "formik";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Yup from "yup";
@@ -10,12 +10,16 @@ import {
 import { Button } from "./atoms/Button";
 
 const TUBE_MAX = 10;
-const TUBE_MIN = 0;
+const TUBE_MIN = 2;
 const UNIT_MIN = 1;
 
 export const ClassRoomForm: FunctionComponent<{
   classRoom?: CreateClassRoom;
 }> = (props) => {
+  // Variables
+
+  const [statusError, setStatusError] = useState("");
+
   // Custom Hooks
 
   const queryClient = useQueryClient();
@@ -26,9 +30,11 @@ export const ClassRoomForm: FunctionComponent<{
   >({
     mutationFn: createClassRoom,
     onSuccess: (res) => {
-      if (res.status < 400) {
-        queryClient.invalidateQueries({ queryKey: ["classrooms"] });
+      if (res.status >= 400) {
+        setStatusError(res.statusText);
+        return;
       }
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
     },
   });
 
@@ -46,6 +52,15 @@ export const ClassRoomForm: FunctionComponent<{
       .max(TUBE_MAX, "Too much")
       .required("Required"),
   });
+
+  // Computed Value
+
+  const serverError = useMemo(() => {
+    if (error) {
+      return error.message;
+    }
+    return statusError;
+  }, [error, statusError]);
 
   const initialValue = useMemo<CreateClassRoom>(() => {
     if (props.classRoom) {
@@ -72,6 +87,7 @@ export const ClassRoomForm: FunctionComponent<{
   // Event Listener
 
   const onSubmit = async (values: CreateClassRoom) => {
+    setStatusError("");
     mutate({
       class_room: values,
     });
@@ -135,7 +151,7 @@ export const ClassRoomForm: FunctionComponent<{
                     className="block text-gray-700 dark:text-slate-50 text-sm font-bold mb-2"
                     htmlFor="password"
                   >
-                    Tube per Unit
+                    Tubes per Unit
                   </label>
                   <input
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 dark:text-slate-50 dark:bg-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
@@ -152,11 +168,11 @@ export const ClassRoomForm: FunctionComponent<{
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center justify-center">
               <Button type="submit">{isPending ? "Saving..." : "Save"}</Button>
-              {error && (
-                <p className="text-red-500 text-xs italic">
-                  Failed to save from the server: {`${error}`}
+              {serverError && (
+                <p className="m-2 text-red-500 text-xs italic">
+                  Failed to save from the server: {`${serverError}`}
                 </p>
               )}
             </div>
