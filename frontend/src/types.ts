@@ -1,5 +1,5 @@
 export interface ClassRoom {
-  id: string;
+  id: number;
   name: string;
   tubeUnits: number;
   fluorescentTubes: number;

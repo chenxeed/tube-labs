@@ -16,6 +16,13 @@ code {
     monospace;
 }
 
+@font-face {
+  font-family: "Colaba";
+  src:
+    local("Colaba"),
+    url("../public/colaba.ttf") format("opentype");
+}
+
 .font-colaba {
-  font-family: 'Colaba', sans-serif;
+  font-family: "Colaba", sans-serif;
 }

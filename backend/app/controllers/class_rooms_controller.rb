@@ -3,7 +3,7 @@ class ClassRoomsController < ApplicationController
 
   # GET /class_rooms
   def index
-    @class_rooms = ClassRoom.all
+    @class_rooms = ClassRoom.order(created_at: :desc)
 
     render json: @class_rooms
   end

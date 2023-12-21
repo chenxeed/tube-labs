@@ -3,23 +3,12 @@ import { Formik } from "formik";
 import { ClassRoom } from "../types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as Yup from "yup";
-
-type CreateClassRoom = Omit<ClassRoom, "id">;
-type CreateClassRoomBody = {
-  class_room: CreateClassRoom;
-};
-
+import {
+  CreateClassRoom,
+  CreateClassRoomBody,
+  createClassRoom,
+} from "../modules/classRoomAPI";
 const limitTube = 10;
-
-const createClassRoom = async (classRoom: CreateClassRoomBody) => {
-  return fetch("/api/class_rooms", {
-    method: "POST",
-    body: JSON.stringify(classRoom),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  }).then((res) => res.json() as Promise<ClassRoom>);
-};
 
 export const ClassRoomForm: FunctionComponent<{
   classRoom?: CreateClassRoom;

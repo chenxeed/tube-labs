@@ -16,12 +16,12 @@ function App() {
   return (
     <div className="mx-auto">
       <header className="p-4 border-b-2 border-gray-400 shadow">
-        <h1 className="mt-2 text-4xl font-bold font-colaba text-inside-orange">
-          [INSIDE] University
+        <h1 className="mt-2 text-4xl font-colaba text-inside-orange">
+          [ INSIDE ] University
         </h1>
       </header>
       <div className="container mx-auto">
-        <div className="bg-slate-50 dark:bg-slate-500 dark:text-slate-50">
+        <div className="mt-4 bg-slate-50 dark:bg-slate-500 dark:text-slate-50">
           <h2 className="text-center text-2xl font-bold">Register New class</h2>
           <div className="mt-4 flex justify-center">
             <ClassRoomForm />

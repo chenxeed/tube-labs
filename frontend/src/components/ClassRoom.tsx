@@ -1,10 +1,12 @@
-import React, { FunctionComponent, useMemo, useRef, useState } from "react";
+import { FunctionComponent, useMemo, useRef, useState } from "react";
 import { ClassRoom as IClassRoom } from "../types";
 import {
   YieldValue,
   calculateClassTubesGenerator,
 } from "../modules/classTubeCalculator";
 import { twMerge } from "tailwind-merge";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateClassRoomBody, updateClassRoom } from "../modules/classRoomAPI";
 
 // Sources: Spring Pastel from https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
 const chartColor = [
@@ -19,9 +21,11 @@ const chartColor = [
   "#8bd3c7",
 ];
 
-export const ClassRoom: FunctionComponent<{ classRoom: IClassRoom }> = ({
-  classRoom,
-}) => {
+interface ClassRoomProps {
+  classRoom: IClassRoom;
+}
+
+export const ClassRoom: FunctionComponent<ClassRoomProps> = ({ classRoom }) => {
   const [calculateResult, setCalculateResult] = useState<YieldValue | null>(
     null
   );
@@ -40,6 +44,23 @@ export const ClassRoom: FunctionComponent<{ classRoom: IClassRoom }> = ({
       return tubes;
     });
   }, [calculateResult, classRoom.fluorescentTubes]);
+
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation<
+    IClassRoom,
+    Error,
+    { id: number; body: UpdateClassRoomBody }
+  >({
+    mutationFn: updateClassRoom,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
+      setLoadingSimulation(true);
+      setTimeout(() => {
+        setLoadingSimulation(false);
+        setCalculateResult(null);
+      }, 500);
+    },
+  });
 
   const prepareSimulation = () => {
     setLoadingSimulation(true);
@@ -71,9 +92,24 @@ export const ClassRoom: FunctionComponent<{ classRoom: IClassRoom }> = ({
         setTimeout(() => {
           window.requestAnimationFrame(iterateResult);
         }, 100);
+      } else {
+        saveSimulationResult(nextResult);
       }
     }
     window.requestAnimationFrame(iterateResult);
+  };
+
+  const saveSimulationResult = (result: YieldValue) => {
+    mutate({
+      id: classRoom.id,
+      body: {
+        class_room: {
+          isSimulated: true,
+          brokenTubes: result.metadata.brokenTubes,
+          cost: result.metadata.cost,
+        },
+      },
+    });
   };
 
   return (
@@ -103,14 +139,14 @@ export const ClassRoom: FunctionComponent<{ classRoom: IClassRoom }> = ({
         )}
         {!classRoom.isSimulated && !toPrint && (
           <>
-            <div>Simulate</div>
+            <div>Simulate Tube</div>
             <div className="text-right">
               <button
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 type="button"
                 onClick={prepareSimulation}
               >
-                View
+                Run
               </button>
             </div>
           </>
