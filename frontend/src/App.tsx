@@ -29,7 +29,7 @@ function App() {
         </div>
         <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-600 dark:text-slate-50">
           <h2 className="text-center text-2xl font-bold">Classes</h2>
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 align-middle">
             {data &&
               data.map((classRoom) => (
                 <ClassRoom key={classRoom.id} classRoom={classRoom} />

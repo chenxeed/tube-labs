@@ -1,3 +1,13 @@
+export interface YieldValue {
+  type: "INIT" | "CONTINUE" | "FINISH";
+  metadata: {
+    hoursRemaining: number;
+    unitTubes: number[][];
+    brokenTubes: number;
+    cost: number;
+  };
+}
+
 /**
  * Simulate how many tubes are broken and how much it costs to replace them
  * based on the number of units and tubes per unit
@@ -5,8 +15,10 @@
  * @param tubePerUnit the number of tubes in a unit
  * @returns
  */
-
-export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
+export function* calculateClassTubesGenerator(
+  unit: number = 0,
+  tubePerUnit: number = 0
+): Generator<YieldValue> {
   if (unit <= 0) {
     throw new Error("calculateClassTubes: Invalid input unit");
   }
@@ -52,6 +64,16 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
     unitTubes.push(createTubes());
   }
 
+  yield {
+    type: "INIT",
+    metadata: {
+      hoursRemaining,
+      unitTubes: [...unitTubes],
+      brokenTubes,
+      cost,
+    },
+  };
+
   while (hoursRemaining > 0) {
     // get the current remaining hours of all tube of each units
     const firstTubeHours = unitTubes.map((tubes) => tubes[0]);
@@ -72,9 +94,11 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
       { hour: Infinity, idx: [] }
     );
 
-    // The remaining hours is not enough to expire the next tube
+    // The remaining hours is not enough to expire the next tube, then we use what's left
+    // of the hours to get the final expired time of all tubes
     if (hoursRemaining < soonToExpireTube.hour) {
-      break;
+      soonToExpireTube.hour = hoursRemaining;
+      soonToExpireTube.idx = [];
     }
 
     // Lower all the tubes' expired time by the lowest expired tube
@@ -86,19 +110,44 @@ export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
     // Remove the one that is expired
     // eslint-disable-next-line no-loop-func
     soonToExpireTube.idx.forEach((idx) => {
-      const removed = unitTubes[idx].shift();
-      console.assert(removed === 0, "check removed must be 0 but " + removed);
+      unitTubes[idx].shift();
       // If it's the limit of the tube, replace all tubes in that unit
-      if (unit - unitTubes[idx].length === replaceLimit) {
+      if (tubePerUnit - unitTubes[idx].length === replaceLimit) {
         cost += replaceCost * tubePerUnit;
         unitTubes[idx] = createTubes();
       }
     });
     brokenTubes += soonToExpireTube.idx.length;
+
+    if (hoursRemaining > 0) {
+      yield {
+        type: "CONTINUE",
+        metadata: {
+          hoursRemaining,
+          unitTubes: [...unitTubes],
+          brokenTubes,
+          cost,
+        },
+      };
+    }
   }
 
   return {
-    brokenTubes,
-    cost,
+    type: "FINISH",
+    metadata: {
+      hoursRemaining,
+      unitTubes: [...unitTubes],
+      brokenTubes,
+      cost,
+    },
   };
+}
+
+export function calculateClassTubes(unit: number = 0, tubePerUnit: number = 0) {
+  const generator = calculateClassTubesGenerator(unit, tubePerUnit);
+  let result: IteratorResult<YieldValue> = generator.next();
+  while (!result.done) {
+    result = generator.next();
+  }
+  return result.value;
 }

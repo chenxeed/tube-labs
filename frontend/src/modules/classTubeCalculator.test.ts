@@ -16,9 +16,9 @@ afterEach(() => {
 
 describe("classTubeCalculator", () => {
   test("should return the cost and broken tubes", () => {
-    expect(calculateClassTubes(4, 4)).toEqual({
-      cost: 2352,
-      brokenTubes: 168,
-    });
+    const result = calculateClassTubes(4, 4);
+    expect(result.metadata.brokenTubes).toEqual(168);
+    expect(result.metadata.cost).toEqual(2352);
+    expect(result.metadata.hoursRemaining).toEqual(0);
   });
 });

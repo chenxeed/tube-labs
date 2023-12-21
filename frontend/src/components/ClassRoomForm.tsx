@@ -9,6 +9,8 @@ type CreateClassRoomBody = {
   class_room: CreateClassRoom;
 };
 
+const limitTube = 10;
+
 const createClassRoom = async (classRoom: CreateClassRoomBody) => {
   return fetch("/api/class_rooms", {
     method: "POST",
@@ -36,11 +38,17 @@ export const ClassRoomForm: FunctionComponent<{
 
   const validationSchema = Yup.object().shape({
     name: Yup.string()
-      .min(2, "Too Short!")
-      .max(50, "Too Long!")
+      .min(2, "Too Short")
+      .max(50, "Too Long")
       .required("Required"),
-    tubeUnits: Yup.number().min(1, "Too Short!").required("Required"),
-    fluorescentTubes: Yup.number().min(2, "Too Short!").required("Required"),
+    tubeUnits: Yup.number()
+      .min(1, "Too less")
+      .max(limitTube, "Too much")
+      .required("Required"),
+    fluorescentTubes: Yup.number()
+      .min(2, "Too less")
+      .max(limitTube, "Too much")
+      .required("Required"),
   });
 
   const initialValue = useMemo<CreateClassRoom>(() => {
@@ -65,7 +73,7 @@ export const ClassRoomForm: FunctionComponent<{
     }
   }, [props.classRoom]);
 
-  const onSubmit = (values: CreateClassRoom) => {
+  const onSubmit = async (values: CreateClassRoom) => {
     mutate({
       class_room: values,
     });
@@ -76,6 +84,8 @@ export const ClassRoomForm: FunctionComponent<{
       <Formik
         initialValues={initialValue}
         validationSchema={validationSchema}
+        validateOnChange={false}
+        validateOnBlur={false}
         onSubmit={onSubmit}
       >
         {({ values, errors, handleChange, handleSubmit }) => (
@@ -116,14 +126,13 @@ export const ClassRoomForm: FunctionComponent<{
                     id="tubeUnits"
                     type="number"
                     min="1"
+                    max={limitTube}
                     value={values.tubeUnits}
                     onChange={handleChange}
                   />
-                  {errors.tubeUnits && (
-                    <p className="text-red-500 text-xs italic">
-                      {errors.tubeUnits}
-                    </p>
-                  )}
+                  <p className="text-red-500 text-xs italic">
+                    {errors.tubeUnits}
+                  </p>
                 </div>
                 <div>
                   <label
@@ -137,6 +146,7 @@ export const ClassRoomForm: FunctionComponent<{
                     name="fluorescentTubes"
                     type="number"
                     min="2"
+                    max={limitTube}
                     value={values.fluorescentTubes}
                     onChange={handleChange}
                   />
