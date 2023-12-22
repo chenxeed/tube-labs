@@ -37,6 +37,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
     null
   );
   const [loadingSimulation, setLoadingSimulation] = useState(false);
+  const [updateError, setUpdateError] = useState("");
   const elementRef = useRef<HTMLDivElement>(null);
 
   // Custom Hooks
@@ -50,7 +51,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
     mutationFn: updateClassRoom,
     onSuccess: (res) => {
       if (res.status >= 400) {
-        return;
+        setUpdateError(res.statusText);
       }
       queryClient.invalidateQueries({ queryKey: ["classrooms"] });
       setLoadingSimulation(true);
@@ -106,27 +107,31 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
       classRoom.fluorescentTubes
     );
 
-    function iterateResult() {
-      const nextIteration = iteration.next();
-      const nextResult = nextIteration.value;
-      setCalculateResult(nextResult);
-      if (!nextIteration.done) {
-        setTimeout(() => {
-          window.requestAnimationFrame(iterateResult);
-        }, 100);
-      } else {
-        mutate({
-          id: classRoom.id,
-          body: {
-            class_room: {
-              isSimulated: true,
-              brokenTubes: nextResult.metadata.brokenTubes,
-              cost: nextResult.metadata.cost,
+    const iterateResult = () => {
+      try {
+        const nextIteration = iteration.next();
+        const nextResult = nextIteration.value;
+        setCalculateResult(nextResult);
+        if (!nextIteration.done) {
+          setTimeout(() => {
+            window.requestAnimationFrame(iterateResult);
+          }, 100);
+        } else {
+          mutate({
+            id: classRoom.id,
+            body: {
+              class_room: {
+                isSimulated: true,
+                brokenTubes: nextResult.metadata.brokenTubes,
+                cost: nextResult.metadata.cost,
+              },
             },
-          },
-        });
+          });
+        }
+      } catch (e) {
+        setUpdateError(`${e}`);
       }
-    }
+    };
     window.requestAnimationFrame(iterateResult);
   };
 
@@ -141,7 +146,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
     <div
       className={twMerge(
         "w-full p-2 rounded min-h-56 flex flex-col items-center justify-start border border-1 shadow transition-all duration-500 bg-white dark:bg-slate-950",
-        toPrint && "col-span-5",
+        toPrint && "col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4",
         loadingSimulation && "w-0 opacity-0"
       )}
       ref={elementRef}
@@ -188,7 +193,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
         )}
         {!classRoom.isSimulated && !toPrint && (
           <>
-            <div>Simulate Tube</div>
+            <div className="font-bold">Simulate Tube</div>
             <div className="text-right">
               <Button
                 variant="primary"
@@ -197,6 +202,13 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
               >
                 Run
               </Button>
+            </div>
+            <div className="col-span-2 text-center">
+              {updateError && (
+                <p className="m-2 text-red-500 text-xs italic">
+                  Fail to update: {updateError}
+                </p>
+              )}
             </div>
           </>
         )}
@@ -225,7 +237,7 @@ export const ClassRoom: FunctionComponent<ClassRoomProps> = ({
               ))}
             </div>
           </div>
-          <div className="m-2 p-2 grid grid-cols-2 gap-2">
+          <div className="m-2 p-2 grid grid-cols gap-2">
             <div className="font-bold">Hours remaining</div>
             <div className="text-right">
               {calculateResult.metadata.hoursRemaining}
